@@ -3,7 +3,11 @@ import SMTPTransport from "nodemailer/lib/smtp-transport";
 
 type DefaultMailConfig = { username: string; email: string };
 
-type OtpMailConfig = { type: "OTP"; code: number } & DefaultMailConfig;
+type VerificationMailConfig = {
+    type: "Verify";
+    code: number;
+    url: string;
+} & DefaultMailConfig;
 
 type NotificationMailConfig = {
     type: "Notification";
@@ -15,7 +19,7 @@ type DebugMailConfig = {
     message: string[];
 } & DefaultMailConfig;
 
-type MailConfig = OtpMailConfig | NotificationMailConfig | DebugMailConfig;
+type MailConfig = VerificationMailConfig | NotificationMailConfig | DebugMailConfig;
 
 export default class MailService {
     private transporter: nodemailer.Transporter<SMTPTransport.SentMessageInfo>;
@@ -29,14 +33,15 @@ export default class MailService {
 
     public async sendMail(config: MailConfig) {
         switch (config.type) {
-            case "OTP":
+            case "Verify":
                 await this.transporter.sendMail({
                     from: "Qresher.com",
                     to: config.email,
                     subject: "Authentication",
-                    html: this.OPTMailHTML({
+                    html: this.verificationMailHTML({
                         username: config.username,
                         code: config.code,
+                        url: config.url,
                     }),
                 });
                 break;
@@ -129,30 +134,42 @@ export default class MailService {
   `;
     }
 
-    private OPTMailHTML(option: { username: string; code: number }) {
-        return `
-    <!DOCTYPE html>
-<html lang="en">
+    private verificationMailHTML(option: {
+        username: string;
+        code: number;
+        url: string;
+    }) {
+        return `<!DOCTYPE html>
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>One-Time Password Email</title>
+  <title>Email Verification</title>
+  <style>
+    /* Style for the button */
+    .button {
+      display: inline-block;
+      font-size: 16px;
+      font-weight: bold;
+      padding: 10px 20px;
+      text-decoration: none;
+      color: #ffffff;
+      background-color: #007bff;
+      border-radius: 5px;
+    }
+    /* Style for the button hover effect */
+    .button:hover {
+      background-color: #0056b3;
+    }
+  </style>
 </head>
-<body style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
-
-  <div style="max-width: 600px; margin: 0 auto; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
-    <h2 style="text-align: center; color: #333;">Hi ${option.username},</h2>
-    <p style="text-align: center; color: #666; margin-bottom: 20px;">Your One-Time Password (OTP) is below:</p>
-    
-    <div style="text-align: center; padding: 15px; background-color: #f9f9f9; border-radius: 5px;">
-      <h1 style="font-size: 36px; margin: 0; color: #333;">${option.code}</h1>
-    </div>
-
-    <p style="text-align: center; color: #666; margin-top: 20px;">This OTP is valid for a single use and should not be shared with anyone. It will expire in a certain period of time.</p>
-    
-    <p style="text-align: center; color: #999; margin-top: 30px;">Thank you for using our services!</p>
-  </div>
+<body>
+  <p>Dear User,</p>
+  <p>Please click the button below to verify your email address:</p>
+  <a class="button" href="${option.url}">Verify Email</a>
+  <p>If you are unable to click the button above, you can also <a href="${option.url}">click here</a> or copy/paste the following URL into your browser:</p>
+  <p>${option.url}</p>
+  <p>Thank you!</p>
 </body>
 </html>
-  `;
+`;
     }
 }
