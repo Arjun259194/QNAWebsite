@@ -144,6 +144,22 @@ export default class MailService {
 <head>
   <title>Email Verification</title>
   <style>
+    /* Style for the body */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
+    /* Style for the email container */
+    .email-container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #ffffff;
+      border-radius: 5px;
+      box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+    }
     /* Style for the button */
     .button {
       display: inline-block;
@@ -162,14 +178,55 @@ export default class MailService {
   </style>
 </head>
 <body>
-  <p>Dear User,</p>
-  <p>Please click the button below to verify your email address:</p>
-  <a class="button" href="${option.url}">Verify Email</a>
-  <p>If you are unable to click the button above, you can also <a href="${option.url}">click here</a> or copy/paste the following URL into your browser:</p>
-  <p>${option.url}</p>
-  <p>Thank you!</p>
+  <div class="email-container">
+    <p>Dear User,</p>
+    <p>Please click the button below to verify your email address:</p>
+    <a class="button" href="${option.url}">Verify Email</a>
+    <p>If you are unable to click the button above, you can also <a href="${option.url}">click here</a> or copy/paste the following URL into your browser:</p>
+    <p>${option.url}</p>
+    <p>Thank you!</p>
+  </div>
 </body>
 </html>
 `;
     }
+
+    //     private verificationMailHTML(option: {
+    //         username: string;
+    //         code: number;
+    //         url: string;
+    //     }) {
+    //         return `<!DOCTYPE html>
+    // <html>
+    // <head>
+    //   <title>Email Verification</title>
+    //   <style>
+    //     /* Style for the button */
+    //     .button {
+    //       display: inline-block;
+    //       font-size: 16px;
+    //       font-weight: bold;
+    //       padding: 10px 20px;
+    //       text-decoration: none;
+    //       color: #ffffff;
+    //       background-color: #007bff;
+    //       border-radius: 5px;
+    //     }
+    //     /* Style for the button hover effect */
+    //     .button:hover {
+    //       background-color: #0056b3;
+    //     }
+    //   </style>
+    // </head>
+    // <body>
+    //   <p>Dear User,</p>
+    //   <p>Please click the button below to verify your email address:</p>
+    //   <a class="button" href="${option.url}">Verify Email</a>
+    //   <p>If you are unable to click the button above, you can also <a href="${option.url}">click here</a> or copy/paste the following URL into your browser:</p>
+    //   <p>${option.url}</p>
+    //   <p>Thank you!</p>
+    // </body>
+    // </html>
+    // `;
+    //     }
 }

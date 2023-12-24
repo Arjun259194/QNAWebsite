@@ -1,6 +1,5 @@
 import prisma from "@/prisma";
 import { newToken } from "@/utils/jwt";
-import { redirect } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
 
 import z from "zod";
@@ -8,19 +7,26 @@ import z from "zod";
 const queryParam = z.object({ code: z.string(), id: z.string() });
 
 export async function GET(req: NextRequest) {
+    const RedirectUrl = new URL("/message", req.url);
+
     const params = queryParam.safeParse({
         code: req.nextUrl.searchParams.get("code"),
         id: req.nextUrl.searchParams.get("id"),
     });
+
     if (!params.success) {
-        console.log("not valid params");
-        console.log(req.nextUrl.searchParams);
-        return redirect("/error_message");
+        RedirectUrl.searchParams.set(
+            "message",
+            "Verification link does not have valid validation data. Try again"
+        );
+        RedirectUrl.searchParams.set("state", "err");
+        return NextResponse.redirect(RedirectUrl);
     }
 
     const otp = await prisma.otp.findFirst({
         where: {
             userId: params.data.id,
+            code: Number(params.data.code),
         },
         orderBy: {
             userId: "desc",
@@ -28,8 +34,9 @@ export async function GET(req: NextRequest) {
     });
 
     if (!otp || otp.code.toString() !== params.data.code) {
-        console.log("otp not matched");
-        return redirect("/error_message");
+        RedirectUrl.searchParams.set("message", "not valid Link, try again");
+        RedirectUrl.searchParams.set("state", "err");
+        return NextResponse.redirect(RedirectUrl);
     }
 
     const token = newToken(otp.userId);
@@ -40,10 +47,7 @@ export async function GET(req: NextRequest) {
         },
     });
 
-    // req.headers.set("Set-Cookie", `auth=${token}; Max-Age=86400; Path=/; HttpOnly`);
-    // req.headers.set("Location", `/profile`);
-
-    return NextResponse.redirect(new URL("/profile", req.url), {
+    return NextResponse.redirect(new URL("/user/profile", req.url), {
         headers: {
             "Set-Cookie": `auth=${token}; Max-Age=86400; Path=/; HttpOnly`,
         },

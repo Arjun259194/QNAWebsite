@@ -43,17 +43,7 @@ export default async function (formData: FormData, str: string) {
 
     if (!isAuth) throw new Error("not valid password");
 
-    const OTP = await prisma.otp
-        .create({
-            data: {
-                code: genRandOtpCode(),
-                userId: foundUser.id,
-            },
-        })
-        .catch(err => {
-            console.log("err", err);
-            throw new Error("Failed to fetch opt");
-        });
+    const OTP = await FindOPT(foundUser.id);
 
     if (!OTP) throw new Error("failed to generate OTP code");
 
@@ -62,7 +52,7 @@ export default async function (formData: FormData, str: string) {
         user: process.env.EMAIL_ADDRESS,
     });
 
-    const u = new URL("/auth/verify", parsedObj.data.origin);
+    const u = new URL("/api/auth/verify", parsedObj.data.origin);
     u.searchParams.set("code", OTP.code.toString());
     u.searchParams.set("id", foundUser.id);
 
@@ -79,4 +69,20 @@ export default async function (formData: FormData, str: string) {
     }
 
     return;
+}
+
+async function FindOPT(userID: string) {
+    try {
+        return (
+            (await prisma.otp.findFirst({
+                where: { userId: userID },
+                orderBy: { id: "desc" },
+            })) ||
+            (await prisma.otp.create({
+                data: { code: genRandOtpCode(), userId: userID },
+            }))
+        );
+    } catch (err) {
+        throw new Error("failed to found the otp");
+    }
 }
