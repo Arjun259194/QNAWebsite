@@ -1,7 +1,9 @@
 "use server";
 import prisma from "@/prisma";
+import { FindOPT } from "@/utils/db";
 import MailService from "@/utils/email";
 import { checkPassword } from "@/utils/hash";
+import { redirect } from "next/navigation";
 import z from "zod";
 
 const LoginReqBody = z.object({
@@ -9,11 +11,6 @@ const LoginReqBody = z.object({
     password: z.string(),
     origin: z.string(),
 });
-function genRandOtpCode() {
-    const CODE_LEN = 6;
-    const code = Math.floor(100000 + Math.random() * 900000);
-    return Number(code.toString().substring(0, CODE_LEN));
-}
 
 export default async function (formData: FormData, str: string) {
     const parsedObj = LoginReqBody.safeParse({
@@ -68,21 +65,5 @@ export default async function (formData: FormData, str: string) {
         throw new Error("Failed to send OPT email");
     }
 
-    return;
-}
-
-async function FindOPT(userID: string) {
-    try {
-        return (
-            (await prisma.otp.findFirst({
-                where: { userId: userID },
-                orderBy: { id: "desc" },
-            })) ||
-            (await prisma.otp.create({
-                data: { code: genRandOtpCode(), userId: userID },
-            }))
-        );
-    } catch (err) {
-        throw new Error("failed to found the otp");
-    }
+    return redirect("/message?message=Check+your+email+for+verification+link&state=ok");
 }
